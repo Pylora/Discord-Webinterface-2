@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Discord Web Interface</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Discord Web Interface</h1>
+        
+        <!-- Nachrichten senden -->
+        <form id="sendMessageForm">
+            <label for="channelID">Channel ID:</label>
+            <input type="text" id="channelID" name="channelID" required>
+            
+            <label for="message">Message:</label>
+            <textarea id="message" name="message" required></textarea>
+            
+            <button type="submit">Send Message</button>
+        </form>
+
+        <!-- Kanalinfo anzeigen -->
+        <button onclick="getChannelInfo()">Get Channel Info</button>
+        <div id="channelInfo" style="margin-top: 20px;"></div>
+
+        <!-- Nachrichten abrufen -->
+        <button onclick="fetchMessages()">Fetch Messages</button>
+        <div id="messages" class="messages"></div>
+    </div>
+
+    <script>
+        document.getElementById('sendMessageForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const channelID = document.getElementById('channelID').value;
+            const message = document.getElementById('message').value;
+
+            const response = await fetch(`/send?channelID=${channelID}&message=${encodeURIComponent(message)}`);
+            alert(await response.text());
+        };
+
+        async function getChannelInfo() {
+            const channelID = document.getElementById('channelID').value;
+            const response = await fetch(`/channel-info?channelID=${channelID}`);
+            const data = await response.json();
+            document.getElementById('channelInfo').innerText = `ID: ${data.id}, Name: ${data.name}, Typ: ${data.type}, Erstellt am: ${data.createdAt}`;
+        }
+
+        async function fetchMessages() {
+            const channelID = document.getElementById('channelID').value;
+            const response = await fetch(`/fetch-messages?channelID=${channelID}&limit=5`);
+            const messages = await response.json();
+
+            const messagesContainer = document.getElementById('messages');
+            messagesContainer.innerHTML = '';
+            messages.forEach(msg => {
+                const div = document.createElement('div');
+                div.className = 'message';
+                div.innerText = `${msg.author}: ${msg.content}`;
+                messagesContainer.appendChild(div);
+            });
+        }
+    </script>
+</body>
+</html>
